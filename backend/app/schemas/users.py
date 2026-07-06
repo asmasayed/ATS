@@ -15,6 +15,4 @@ class UserCreate(BaseModel):
             raise ValueError("Password must contain at least one digit")
         if not any(char.isupper() for char in password):
             raise ValueError("Password must contain at least one uppercase letter")
-        if not any(char.isSpecial() for char in password):
-            raise ValueError("Password must contain at least one special character")
         return value

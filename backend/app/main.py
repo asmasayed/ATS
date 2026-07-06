@@ -33,16 +33,21 @@ def signup(
     # Ask FastAPI to provide a database Session using get_db()
     db: Session=Depends(get_db)
     ):
-    hashed_password=hash_password(user.password.get_secret_value())
+    if db.query(User).filter(User.email==user.email).first():
+        return {"LogIn Instead": "Email already registered"}
+    try:
+        hashed_password=hash_password(user.password.get_secret_value())
 
-
-    #Create a new user object
-    db_user=User(
-        name=user.name,
-        email=user.email,
-        password_hash=hashed_password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return {"message": "User created"} 
+        #Create a new user object
+        db_user=User(
+            name=user.name,
+            email=user.email,
+            password_hash=hashed_password
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        return {"message": "User created"}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)} 
