@@ -19,3 +19,7 @@ def root():
 #Gather all models and create the tables
 #(only use this in development)
 #Base.metadata.create_all(bind=engine)
+
+#Create endpoint for signup
+# @app.post("/signup")
+# def signup(user: UserCreate):
