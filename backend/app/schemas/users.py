@@ -1,8 +1,20 @@
-from pydantic import BaseModel, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, SecretStr, field_validator
 
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
     password: SecretStr
 
-    
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, value:SecretStr)->SecretStr:
+        password=value.get_secret_value()
+        if(len(password)<8):
+            raise ValueError("Password must be at least 8 characters long")
+        if not any(char.isdigit() for char in password):
+            raise ValueError("Password must contain at least one digit")
+        if not any(char.isupper() for char in password):
+            raise ValueError("Password must contain at least one uppercase letter")
+        if not any(char.isSpecial() for char in password):
+            raise ValueError("Password must contain at least one special character")
+        return value

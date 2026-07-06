@@ -19,3 +19,12 @@ SessionLocal=sessionmaker(
 
 #Call dec_base() is a factory function that constructs a base class, Base
 Base=declarative_base()
+
+#function to handle a session
+def get_db():
+    #Creates a session object, which is used to interact with the database
+    db=SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
