@@ -1,6 +1,7 @@
 #import the class from this module
 from passlib.context import CryptContext
 
+#Use this reusable CryptContext to hash and verify passwords. 
 pwd_context=CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"

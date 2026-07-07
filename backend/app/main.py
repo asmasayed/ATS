@@ -1,8 +1,10 @@
 #import the FastAPI class from the fastapi module
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from .auth.security import hash_password
+from .schemas.UserLogin import UserLogin
+
+from .auth.security import hash_password, verify_password
 from .schemas.users import UserCreate
 from .database import engine, Base
 from .models.user import User
@@ -47,7 +49,41 @@ def signup(
         db.add(db_user)
         db.commit()
         db.refresh(db_user)
-        return {"message": "User created"}
+
+        return{"message":"user created"}
+        
+        
     except Exception as e:
         db.rollback()
-        return {"error": str(e)} 
+        return {"error":str(e)}
+        
+    
+@app.post("/login")
+def login(
+    user:UserLogin,
+    db:Session=Depends(get_db)
+):
+    try:
+        #login the user
+        db_user=db.query(User).filter(User.email==user.email).first()
+        if db_user is not None:
+            plain_password=user.password.get_secret_value()
+            hashed_password=db_user.password_hash
+            authenticate=verify_password(plain_password,hashed_password)
+            if not authenticate:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail={"error":"Invalid credentials"}
+                )
+            
+            #JWT token generation can be added here for authenticated users
+
+            return{"message":"Login successful"}
+            
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail={"error":"Invalid credentials"}
+            )
+    except Exception as e:
+        return {"error":str(e)}
