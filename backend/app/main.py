@@ -2,15 +2,18 @@
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from .schemas.UserRespose import UserResponse
+
 from .schemas.UserLogin import UserLogin
 
-from .auth.security import hash_password, verify_password
-from .schemas.users import UserCreate
+from .auth.security import hash_password, verify_password, create_access_token, get_current_user
+from .schemas.UserCreate import UserCreate
 from .database import engine, Base
 from .models.user import User
 from .models.application import Application
 from .models.resume import Resume
 from .database import  get_db
+
 
 #This creates your backend and assigns it to the object app
 app=FastAPI()
@@ -77,8 +80,9 @@ def login(
                 )
             
             #JWT token generation can be added here for authenticated users
+            access_token=create_access_token(data={"sub":str(db_user.id)})
 
-            return{"message":"Login successful"}
+            return{"message":"Login successful","access_token":access_token,"token_type":"bearer"}
             
         else:
             raise HTTPException(
@@ -87,3 +91,10 @@ def login(
             )
     except Exception as e:
         return {"error":str(e)}
+
+#FastAPI uses Pydantic to create a UserResponse object from the returned SQLAlchemy 'User' object
+@app.get("/me", response_model=UserResponse)
+def get_me(
+    current_user:User=Depends(get_current_user)
+):
+    return current_user
